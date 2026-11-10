@@ -1,0 +1,21 @@
+{
+  "short_name": "SMART BUILD",
+  "name": "SMART BUILD – AI-Powered Construction Material Ordering System",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#102A43",
+  "theme_color": "#F59E0B",
+  "display": "standalone",
+  "orientation": "portrait"
+}
