@@ -20,7 +20,6 @@ import api from '../../services/api';
 import ProductCard from '../../components/products/ProductCard';
 
 export default function LandingPage() {
-  const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,11 +31,7 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catData, prodData] = await Promise.all([
-          api.get('/categories'),
-          api.get('/products?limit=8')
-        ]);
-        setCategories(catData || []);
+        const prodData = await api.get('/products?limit=8');
         setFeaturedProducts(prodData.items || []);
       } catch (err) {
         console.error('Failed to load landing page data:', err);
@@ -112,55 +107,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2. POPULAR CATEGORIES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex items-end justify-between">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Popular Categories</h2>
-            <p className="text-sm text-slate-500 mt-1">Source high-grade materials across certified manufacturing verticals.</p>
-          </div>
-          <Link to="/materials" className="text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-500 flex items-center">
-            <span>View All</span>
-            <ChevronRight className="w-4 h-4 ml-0.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/materials?category=${cat.id}`}
-              className="group bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-lg hover:border-amber-400 transition-all flex flex-col items-center text-center space-y-3"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center overflow-hidden border border-amber-100 group-hover:scale-110 transition-transform">
-                {cat.image_url ? (
-                  <img
-                    src={cat.image_url}
-                    alt={cat.name}
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?w=200&auto=format&fit=crop&q=60';
-                    }}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Layers className="w-7 h-7 text-amber-600" />
-                )}
-              </div>
-              <div>
-                <div className="font-bold text-slate-900 text-sm group-hover:text-amber-600 transition">
-                  {cat.name}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  {cat.product_count || 3} Products
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. FEATURED MATERIALS */}
+      {/* 2. FEATURED MATERIALS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex items-end justify-between">
           <div>
