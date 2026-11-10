@@ -25,6 +25,7 @@ from app.models.notification import Notification
 from app.models.complaint import Complaint
 from app.models.estimator import AIEstimation, AIPrediction
 from app.models.audit import AuditLog
+from app.models.enquiry import Enquiry
 
 __all__ = [
     "Base",
@@ -59,5 +60,6 @@ __all__ = [
     "Complaint",
     "AIEstimation",
     "AIPrediction",
-    "AuditLog"
+    "AuditLog",
+    "Enquiry"
 ]

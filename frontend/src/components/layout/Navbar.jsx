@@ -62,6 +62,19 @@ export default function Navbar() {
             <Calculator className="w-4 h-4" />
             <span>AI Estimator</span>
           </Link>
+          <a 
+            href="/#enquiry-card" 
+            onClick={(e) => {
+              const el = document.getElementById('enquiry-card');
+              if (el) {
+                e.preventDefault();
+                el.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="text-amber-400 hover:text-amber-300 font-bold transition flex items-center space-x-1"
+          >
+            <span>Enquire & Book</span>
+          </a>
           <Link to="/about" className="hover:text-amber-400 transition">About</Link>
           <Link to="/contact" className="hover:text-amber-400 transition">Contact</Link>
         </nav>
@@ -191,6 +204,20 @@ export default function Navbar() {
           >
             AI Construction Material Estimator
           </Link>
+          <a 
+            href="/#enquiry-card" 
+            onClick={(e) => {
+              setMobileMenuOpen(false);
+              const el = document.getElementById('enquiry-card');
+              if (el) {
+                e.preventDefault();
+                el.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="block py-2 text-sm font-bold text-amber-400"
+          >
+            ⚡ Quick Material Enquiry & Book Order
+          </a>
           <Link 
             to="/about" 
             onClick={() => setMobileMenuOpen(false)}

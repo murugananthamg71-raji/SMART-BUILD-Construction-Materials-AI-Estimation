@@ -15,7 +15,8 @@ from app.routers import (
     admin,
     suppliers,
     deliveries,
-    payments
+    payments,
+    enquiries
 )
 
 # Setup logging
@@ -67,6 +68,7 @@ app.include_router(admin.router, prefix=settings.API_V1_STR)
 app.include_router(suppliers.router, prefix=settings.API_V1_STR)
 app.include_router(deliveries.router, prefix=settings.API_V1_STR)
 app.include_router(payments.router, prefix=settings.API_V1_STR)
+app.include_router(enquiries.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

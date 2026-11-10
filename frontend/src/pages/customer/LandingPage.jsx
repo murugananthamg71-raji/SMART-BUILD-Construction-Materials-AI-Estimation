@@ -14,8 +14,10 @@ import {
   Award,
   Users,
   Compass,
-  Headphones
+  Headphones,
+  ClipboardList
 } from 'lucide-react';
+import QuickEnquiryCard from '../../components/home/QuickEnquiryCard';
 
 export default function LandingPage() {
   // Quick interactive mini-estimator state
@@ -31,53 +33,61 @@ export default function LandingPage() {
   return (
     <div className="space-y-16 pb-16">
       {/* 1. HERO SECTION */}
-      <section className="relative bg-[#102A43] text-white overflow-hidden py-16 sm:py-24 border-b border-slate-700">
+      <section className="relative bg-[#102A43] text-white overflow-hidden py-12 sm:py-20 border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl space-y-6">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>India's #1 AI-Powered Construction Marketplace</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            {/* Left Column: Hero Text & Metrics */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>India's #1 AI-Powered Construction Marketplace</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                Build Smarter. Order Better. <span className="text-amber-400">Save More.</span>
+              </h1>
+
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
+                Discover certified construction materials, compare wholesale supplier prices, and estimate exact building requirements with our civil engineering AI.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <Link
+                  to="/materials"
+                  className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-base font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 shadow-xl transition-all active:scale-95"
+                >
+                  <span>Explore Materials</span>
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+                <Link
+                  to="/estimator"
+                  className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-base font-bold text-white bg-slate-800/90 hover:bg-slate-700 border border-slate-600 shadow-md transition-all"
+                >
+                  <Calculator className="w-5 h-5 mr-2 text-amber-400" />
+                  <span>Calculate Requirements</span>
+                </Link>
+              </div>
+
+              {/* Quick Metrics */}
+              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-700/80 max-w-lg">
+                <div>
+                  <div className="text-2xl font-black text-amber-400">20+</div>
+                  <div className="text-xs text-slate-400">Verified Suppliers</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-amber-400">100%</div>
+                  <div className="text-xs text-slate-400">BIS Certified</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-amber-400">₹0</div>
+                  <div className="text-xs text-slate-400">Free Bulk Shipping</div>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
-              Build Smarter. Order Better. <span className="text-amber-400">Save More.</span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-              Discover certified construction materials, compare wholesale supplier prices, and estimate exact building requirements with our civil engineering AI.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <Link
-                to="/materials"
-                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-base font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 shadow-xl transition-all active:scale-95"
-              >
-                <span>Explore Materials</span>
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-              <Link
-                to="/estimator"
-                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-base font-bold text-white bg-slate-800/90 hover:bg-slate-700 border border-slate-600 shadow-md transition-all"
-              >
-                <Calculator className="w-5 h-5 mr-2 text-amber-400" />
-                <span>Calculate Material Requirements</span>
-              </Link>
-            </div>
-
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-4 pt-8 border-t border-slate-700/80 max-w-lg">
-              <div>
-                <div className="text-2xl font-black text-amber-400">20+</div>
-                <div className="text-xs text-slate-400">Verified Suppliers</div>
-              </div>
-              <div>
-                <div className="text-2xl font-black text-amber-400">100%</div>
-                <div className="text-xs text-slate-400">BIS Certified</div>
-              </div>
-              <div>
-                <div className="text-2xl font-black text-amber-400">₹0</div>
-                <div className="text-xs text-slate-400">Free Bulk Shipping</div>
-              </div>
+            {/* Right Column: Quick Enquiry & Instant Order Booking Form */}
+            <div id="enquiry-card" className="lg:col-span-5">
+              <QuickEnquiryCard />
             </div>
           </div>
         </div>
