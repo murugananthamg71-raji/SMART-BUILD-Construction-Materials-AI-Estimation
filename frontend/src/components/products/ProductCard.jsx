@@ -32,11 +32,15 @@ export default function ProductCard({ product }) {
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group">
       <div>
         {/* Product Image & Badges */}
-        <Link to={`/materials/${product.id}`} className="block relative aspect-4/3 overflow-hidden bg-slate-100">
+        <Link to={`/materials/${product.id}`} className="block relative aspect-4/3 overflow-hidden bg-white p-3 border-b border-slate-100 flex items-center justify-center">
           <img
             src={imageSrc}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?w=500&auto=format&fit=crop&q=60';
+            }}
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
           {product.brand && (

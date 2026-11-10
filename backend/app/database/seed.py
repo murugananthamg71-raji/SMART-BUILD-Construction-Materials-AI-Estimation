@@ -9,7 +9,7 @@ from app.models.profile import CustomerProfile, SupplierProfile, DeliveryPartner
 from app.models.category import Category
 from app.models.product import Product, ProductImage
 from app.models.inventory import Inventory
-from app.models.cart import Cart
+from app.models.cart import Cart, CartItem
 from app.models.wishlist import Wishlist
 from app.models.address import Address
 from app.models.order import Order, OrderItem
@@ -19,155 +19,224 @@ from app.models.payment import Payment
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("seed")
 
-def seed_database():
+def seed_database(force_refresh=True):
     db: Session = SessionLocal()
     try:
-        logger.info("Checking if database already has seed data...")
-        admin_check = db.query(User).filter(User.email == "admin@smartbuild.com").first()
-        if admin_check:
-            logger.info("Database already seeded with demo users. Skipping re-seed.")
-            return
+        logger.info("Initializing full Construction Materials dataset...")
 
-        logger.info("Seeding demo users...")
+        if force_refresh:
+            logger.info("Clearing existing products, images, inventory & categories...")
+            db.query(CartItem).delete()
+            db.query(OrderItem).delete()
+            db.query(Delivery).delete()
+            db.query(Payment).delete()
+            db.query(Order).delete()
+            db.query(ProductImage).delete()
+            db.query(Inventory).delete()
+            db.query(Product).delete()
+            db.query(Category).delete()
+            db.commit()
+
+        # Ensure demo users exist
         demo_password = get_password_hash("Demo1234!")
 
-        # 1. Admin
-        admin = User(
-            name="Platform Administrator",
-            email="admin@smartbuild.com",
-            hashed_password=demo_password,
-            phone="+91 90000 00001",
-            role=UserRole.ADMIN,
-            is_active=True,
-            is_verified=True
-        )
-        db.add(admin)
+        admin = db.query(User).filter(User.email == "admin@smartbuild.com").first()
+        if not admin:
+            admin = User(
+                name="Platform Administrator",
+                email="admin@smartbuild.com",
+                hashed_password=demo_password,
+                phone="+91 90000 00001",
+                role=UserRole.ADMIN,
+                is_active=True,
+                is_verified=True
+            )
+            db.add(admin)
 
-        # 2. Customer
-        customer = User(
-            name="Rahul Sharma (Builder)",
-            email="customer@smartbuild.com",
-            hashed_password=demo_password,
-            phone="+91 98888 11111",
-            role=UserRole.CUSTOMER,
-            is_active=True,
-            is_verified=True
-        )
-        db.add(customer)
-        db.flush()
+        customer = db.query(User).filter(User.email == "customer@smartbuild.com").first()
+        if not customer:
+            customer = User(
+                name="Rahul Sharma (Builder)",
+                email="customer@smartbuild.com",
+                hashed_password=demo_password,
+                phone="+91 98888 11111",
+                role=UserRole.CUSTOMER,
+                is_active=True,
+                is_verified=True
+            )
+            db.add(customer)
+            db.flush()
+            cust_profile = CustomerProfile(user_id=customer.id, company_name="Sharma Construction Projects")
+            cart = Cart(user_id=customer.id)
+            wishlist = Wishlist(user_id=customer.id)
+            db.add_all([cust_profile, cart, wishlist])
 
-        customer_profile = CustomerProfile(
-            user_id=customer.id,
-            company_name="Sharma Construction Projects",
-            gst_number="29ABCDE1234F1Z5"
-        )
-        cart = Cart(user_id=customer.id)
-        wishlist = Wishlist(user_id=customer.id)
-        cust_address = Address(
-            user_id=customer.id,
-            title="Bangalore Construction Site #1",
-            recipient_name="Rahul Sharma",
-            recipient_phone="+91 98888 11111",
-            street_address="Plot 104, Outer Ring Road, Bellandur",
-            landmark="Near Tech Park Gate 2",
-            city="Bangalore",
-            state="Karnataka",
-            postal_code="560103",
-            is_default=True
-        )
-        db.add_all([customer_profile, cart, wishlist, cust_address])
+        cust_address = db.query(Address).filter(Address.user_id == customer.id).first()
+        if not cust_address:
+            cust_address = Address(
+                user_id=customer.id,
+                title="Bangalore Construction Site #1",
+                recipient_name="Rahul Sharma",
+                recipient_phone="+91 98888 11111",
+                street_address="Plot 104, Outer Ring Road, Bellandur",
+                city="Bangalore",
+                state="Karnataka",
+                postal_code="560103",
+                is_default=True
+            )
+            db.add(cust_address)
+            db.flush()
 
-        # 3. Supplier 1
-        supplier1_user = User(
-            name="Suresh Patel",
-            email="supplier@smartbuild.com",
-            hashed_password=demo_password,
-            phone="+91 97777 22222",
-            role=UserRole.SUPPLIER,
-            is_active=True,
-            is_verified=True
-        )
-        db.add(supplier1_user)
-        db.flush()
+        supplier1_user = db.query(User).filter(User.email == "supplier@smartbuild.com").first()
+        if not supplier1_user:
+            supplier1_user = User(
+                name="Suresh Patel",
+                email="supplier@smartbuild.com",
+                hashed_password=demo_password,
+                phone="+91 97777 22222",
+                role=UserRole.SUPPLIER,
+                is_active=True,
+                is_verified=True
+            )
+            db.add(supplier1_user)
+            db.flush()
+            supplier1 = SupplierProfile(
+                user_id=supplier1_user.id,
+                company_name="Apex Infrastructure & Steel Supplies",
+                business_license="BL-KA-2024-9988",
+                tax_id="29AAACA9999P1Z1",
+                address="Yard 12, Peenya Industrial Area 2nd Stage",
+                city="Bangalore",
+                state="Karnataka",
+                postal_code="560058",
+                approval_status=ApprovalStatus.APPROVED,
+                rating=4.90,
+                total_reviews=168
+            )
+            db.add(supplier1)
+        else:
+            supplier1 = supplier1_user.supplier_profile
 
-        supplier1 = SupplierProfile(
-            user_id=supplier1_user.id,
-            company_name="Apex Infrastructure & Steel Supplies",
-            business_license="BL-KA-2024-9988",
-            tax_id="29AAACA9999P1Z1",
-            address="Yard 12, Peenya Industrial Area 2nd Stage",
-            city="Bangalore",
-            state="Karnataka",
-            postal_code="560058",
-            approval_status=ApprovalStatus.APPROVED,
-            rating=4.85,
-            total_reviews=142
-        )
-        db.add(supplier1)
+        supplier2_user = db.query(User).filter(User.email == "cement.hub@smartbuild.com").first()
+        if not supplier2_user:
+            supplier2_user = User(
+                name="Vikram Verma",
+                email="cement.hub@smartbuild.com",
+                hashed_password=demo_password,
+                phone="+91 96666 33333",
+                role=UserRole.SUPPLIER,
+                is_active=True,
+                is_verified=True
+            )
+            db.add(supplier2_user)
+            db.flush()
+            supplier2 = SupplierProfile(
+                user_id=supplier2_user.id,
+                company_name="Bharat Cement, Quarry & Aggregates Corp",
+                business_license="BL-KA-2023-7721",
+                tax_id="29BBBCB8888Q1Z2",
+                address="Plot 45, Hosur Main Road",
+                city="Bangalore",
+                state="Karnataka",
+                postal_code="560068",
+                approval_status=ApprovalStatus.APPROVED,
+                rating=4.88,
+                total_reviews=142
+            )
+            db.add(supplier2)
+        else:
+            supplier2 = supplier2_user.supplier_profile
 
-        # Supplier 2
-        supplier2_user = User(
-            name="Vikram Verma",
-            email="cement.hub@smartbuild.com",
-            hashed_password=demo_password,
-            phone="+91 96666 33333",
-            role=UserRole.SUPPLIER,
-            is_active=True,
-            is_verified=True
-        )
-        db.add(supplier2_user)
-        db.flush()
+        delivery_user = db.query(User).filter(User.email == "delivery@smartbuild.com").first()
+        if not delivery_user:
+            delivery_user = User(
+                name="Rajesh Gounder",
+                email="delivery@smartbuild.com",
+                hashed_password=demo_password,
+                phone="+91 95555 44444",
+                role=UserRole.DELIVERY_PARTNER,
+                is_active=True,
+                is_verified=True
+            )
+            db.add(delivery_user)
+            db.flush()
+            deliv_prof = DeliveryPartnerProfile(
+                user_id=delivery_user.id,
+                vehicle_type="Heavy Commercial Eicher 1095 Tipper (10 Ton)",
+                vehicle_number="KA-01-MJ-4592",
+                license_number="DL-0420210088992",
+                is_available=True,
+                current_location="Electronic City, Bangalore"
+            )
+            db.add(deliv_prof)
 
-        supplier2 = SupplierProfile(
-            user_id=supplier2_user.id,
-            company_name="Bharat Cement & Aggregates Corp",
-            business_license="BL-KA-2023-7721",
-            tax_id="29BBBCB8888Q1Z2",
-            address="Plot 45, Hosur Main Road",
-            city="Bangalore",
-            state="Karnataka",
-            postal_code="560068",
-            approval_status=ApprovalStatus.APPROVED,
-            rating=4.90,
-            total_reviews=98
-        )
-        db.add(supplier2)
+        db.commit()
 
-        # 4. Delivery Partner
-        delivery_user = User(
-            name="Rajesh Gounder",
-            email="delivery@smartbuild.com",
-            hashed_password=demo_password,
-            phone="+91 95555 44444",
-            role=UserRole.DELIVERY_PARTNER,
-            is_active=True,
-            is_verified=True
-        )
-        db.add(delivery_user)
-        db.flush()
-
-        delivery_profile = DeliveryPartnerProfile(
-            user_id=delivery_user.id,
-            vehicle_type="Heavy Commercial Eicher 1095 Truck (10 Ton)",
-            vehicle_number="KA-01-MJ-4592",
-            license_number="DL-0420210088992",
-            is_available=True,
-            current_location="Electronic City, Bangalore"
-        )
-        db.add(delivery_profile)
-        db.flush()
-
-        logger.info("Seeding 9 construction material categories...")
+        # 9 EXACT CATEGORIES with bilingual Tamil + English titles & user's images
         categories_data = [
-            {"name": "Cement", "slug": "cement", "description": "OPC, PPC, and rapid-hardening structural cements from certified plants.", "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&auto=format&fit=crop&q=60", "display_order": 1},
-            {"name": "Steel", "slug": "steel", "description": "High-ductility Fe550D TMT reinforcement rebars and structural angles.", "image_url": "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?w=500&auto=format&fit=crop&q=60", "display_order": 2},
-            {"name": "Bricks & Blocks", "slug": "bricks", "description": "Red clay kiln-fired bricks, AAC thermal blocks, and concrete solid blocks.", "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500&auto=format&fit=crop&q=60", "display_order": 3},
-            {"name": "Sand", "slug": "sand", "description": "Manufactured M-Sand for masonry, P-Sand for plastering, and washed river sand.", "image_url": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=500&auto=format&fit=crop&q=60", "display_order": 4},
-            {"name": "Gravel & Aggregates", "slug": "gravel", "description": "Graded 10mm, 20mm blue metal granite aggregates and GSB sub-base rock.", "image_url": "https://images.unsplash.com/photo-1541888946425-d0fbb18086f7?w=500&auto=format&fit=crop&q=60", "display_order": 5},
-            {"name": "Tiles & Flooring", "slug": "tiles", "description": "Double-charged vitrified floor tiles, ceramic wall dado, and anti-skid pavers.", "image_url": "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?w=500&auto=format&fit=crop&q=60", "display_order": 6},
-            {"name": "Paint & Finishes", "slug": "paint", "description": "Weather-proof exterior coatings, interior luxury acrylic emulsions, and primers.", "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=500&auto=format&fit=crop&q=60", "display_order": 7},
-            {"name": "Plumbing & Drainage", "slug": "plumbing", "description": "CPVC hot/cold water pressure pipes, SWR drainage fittings, and ball valves.", "image_url": "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&auto=format&fit=crop&q=60", "display_order": 8},
-            {"name": "Electrical & Wiring", "slug": "electrical", "description": "FR-LSH copper domestic cables, industrial conduits, and modular switchgear.", "image_url": "https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?w=500&auto=format&fit=crop&q=60", "display_order": 9}
+            {
+                "name": "Cement (சிமெண்ட்)",
+                "slug": "cement",
+                "description": "OPC 43, OPC 53, PPC, PSC, White Cement, and Ready Mix Concrete from certified plants.",
+                "image_url": "/images/materials/cat_cement.png",
+                "display_order": 1
+            },
+            {
+                "name": "Steel (இரும்பு)",
+                "slug": "steel",
+                "description": "TMT Rebars, MS Rods, Steel Angles, Channels, Sheets, Binding Wires, and Steel Pipes.",
+                "image_url": "/images/materials/cat_steel.png",
+                "display_order": 2
+            },
+            {
+                "name": "Bricks & Blocks (செங்கல்)",
+                "slug": "bricks",
+                "description": "Red Clay Bricks, Fly Ash Bricks, AAC Blocks, Solid Concrete Blocks, Hollow & Paver Blocks.",
+                "image_url": "/images/materials/cat_bricks.png",
+                "display_order": 3
+            },
+            {
+                "name": "Sand (மணல்)",
+                "slug": "sand",
+                "description": "Government Approved River Sand, M-Sand, P-Sand, Plastering Sand, and Filter Sand.",
+                "image_url": "/images/materials/cat_sand.png",
+                "display_order": 4
+            },
+            {
+                "name": "Gravel & Aggregates (ஜல்லி)",
+                "slug": "gravel",
+                "description": "6mm, 10mm, 12mm, 20mm, 40mm Granite Jelly, Stone Dust, and Machine-Crushed Stone.",
+                "image_url": "/images/materials/cat_gravel.png",
+                "display_order": 5
+            },
+            {
+                "name": "Tiles & Flooring (டைல்ஸ்)",
+                "slug": "tiles",
+                "description": "Ceramic, Vitrified, Porcelain Tiles, Granite Slabs, Italian Marble, Parking & Anti-Skid Tiles.",
+                "image_url": "/images/materials/cat_tiles.png",
+                "display_order": 6
+            },
+            {
+                "name": "Paint & Finishes (பெயிண்ட்)",
+                "slug": "paint",
+                "description": "Interior & Exterior Paints, Primers, Wall Putty, Enamel, Texture Paints, and Waterproofing.",
+                "image_url": "/images/materials/cat_paint.png",
+                "display_order": 7
+            },
+            {
+                "name": "Plumbing & Drainage (பிளம்பிங்)",
+                "slug": "plumbing",
+                "description": "PVC, CPVC, UPVC, HDPE Pipes, Fittings, Elbows, Tees, Water Taps, Valves, Traps & Tanks.",
+                "image_url": "/images/materials/cat_plumbing.png",
+                "display_order": 8
+            },
+            {
+                "name": "Electrical & Wiring (எலக்ட்ரிக்கல்)",
+                "slug": "electrical",
+                "description": "Electrical Wires, Armoured Cables, Switches, Sockets, MCBs, Distribution Boards, LED, Conduits.",
+                "image_url": "/images/materials/cat_electrical.png",
+                "display_order": 9
+            }
         ]
 
         cat_map = {}
@@ -177,262 +246,757 @@ def seed_database():
             db.flush()
             cat_map[cat.slug] = cat.id
 
-        logger.info("Seeding 22 realistic construction products with stock & imagery...")
-        products_data = [
-            # Cement
+        logger.info("Seeding full construction materials list (all 66 items)...")
+
+        # Full exhaustive list requested by user
+        full_materials_list = [
+            # 1. CEMENT (சிமெண்ட்)
             {
-                "name": "UltraTech Super Cement 53 Grade OPC",
-                "category_id": cat_map["cement"],
-                "supplier_id": supplier2.id,
-                "price": Decimal("385.00"),
-                "unit": "bag",
-                "brand": "UltraTech",
-                "description": "Premium 53 Grade Ordinary Portland Cement ideal for high-strength RCC structural casting, slabs, columns, and heavy civil foundations.",
-                "stock": 500,
-                "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&auto=format&fit=crop&q=80"
-            },
-            {
-                "name": "Ambuja Kawach Waterproof Cement",
-                "category_id": cat_map["cement"],
-                "supplier_id": supplier2.id,
-                "price": Decimal("410.00"),
-                "unit": "bag",
-                "brand": "Ambuja",
-                "description": "Engineered water-repellent cement with active silane technology preventing efflorescence and water seepage in roof slabs and retaining walls.",
-                "stock": 350,
-                "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80"
-            },
-            {
-                "name": "ACC Concrete Plus Composite PPC Cement",
+                "name": "OPC 43 Grade Cement (UltraTech / Dalmia)",
                 "category_id": cat_map["cement"],
                 "supplier_id": supplier2.id,
                 "price": Decimal("375.00"),
                 "unit": "bag",
-                "brand": "ACC",
-                "description": "Portland Pozzolana Cement formulated with spherical mineral admixtures for ultra-dense, cohesive concrete and reduced thermal cracking.",
-                "stock": 420,
-                "image_url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&auto=format&fit=crop&q=80"
+                "brand": "UltraTech",
+                "description": "Ordinary Portland Cement 43 Grade suitable for general RCC structures, plastering, non-structural precast and brick masonry.",
+                "stock": 800,
+                "image_url": "/images/materials/opc_43_grade.png"
             },
-            # Steel
             {
-                "name": "Tata Tiscon 550D TMT Rebar (12mm)",
+                "name": "OPC 53 Grade Cement (UltraTech / Chettinad)",
+                "category_id": cat_map["cement"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("395.00"),
+                "unit": "bag",
+                "brand": "UltraTech",
+                "description": "High-strength 53 Grade OPC with early 28-day characteristic compressive strength exceeding 53 MPa for columns, heavy beams & multistory slabs.",
+                "stock": 1200,
+                "image_url": "/images/materials/opc_53_grade.png"
+            },
+            {
+                "name": "PPC Cement (Portland Pozzolana Cement - Ambuja Kawach / Ramco)",
+                "category_id": cat_map["cement"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("380.00"),
+                "unit": "bag",
+                "brand": "Ambuja",
+                "description": "Water-repellent pozzolana cement offering superior resistance to chemical and sulfate attacks, damp-proofing foundations and roof slabs.",
+                "stock": 650,
+                "image_url": "/images/materials/ppc_cement.png"
+            },
+            {
+                "name": "PSC Cement (Portland Slag Cement - JSW Concreel HD)",
+                "category_id": cat_map["cement"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("365.00"),
+                "unit": "bag",
+                "brand": "JSW",
+                "description": "Slag cement manufactured by grinding clinker and granulated blast-furnace slag, providing highest impermeability against groundwater dampness.",
+                "stock": 500,
+                "image_url": "/images/materials/psc_cement.png"
+            },
+            {
+                "name": "White Cement (Birla White / JK White 50kg Bag)",
+                "category_id": cat_map["cement"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("850.00"),
+                "unit": "bag",
+                "brand": "Birla White",
+                "description": "Superior whiteness (> 89% Hunter scale) cement for terrazzo flooring, ornamental architectural precast work, tile grouting, and marble setting.",
+                "stock": 250,
+                "image_url": "/images/materials/white_cement.png"
+            },
+            {
+                "name": "Ready Mix Cement Concrete (RMC M20 / M25 Grade Transit Mix)",
+                "category_id": cat_map["cement"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("4200.00"),
+                "unit": "cubic_meter",
+                "brand": "UltraTech RMC",
+                "description": "Automated computerized batching plant mixed concrete delivered via transit mixer truck directly pumped to floor slab levels.",
+                "stock": 100,
+                "image_url": "/images/materials/ready_mix_cement.png"
+            },
+
+            # 2. STEEL (இரும்பு)
+            {
+                "name": "TMT Bars (Tata Tiscon / JSW Neosteel Fe550D 12mm)",
                 "category_id": cat_map["steel"],
                 "supplier_id": supplier1.id,
                 "price": Decimal("74.50"),
                 "unit": "kg",
                 "brand": "Tata Tiscon",
-                "description": "Fe550D grade primary steel reinforcement with superior elongation and earthquake-resistant energy absorption for multistory residential frames.",
-                "stock": 2500,
-                "image_url": "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?w=600&auto=format&fit=crop&q=80"
+                "description": "Primary high-ductility Fe550D thermo-mechanically treated rebar with seismic resistance for residential and commercial RCC framing.",
+                "stock": 6000,
+                "image_url": "/images/materials/tmt_bars.png"
             },
             {
-                "name": "Tata Tiscon 550D TMT Rebar (16mm)",
+                "name": "MS Rods (Mild Steel Round Bars 10mm / 12mm)",
                 "category_id": cat_map["steel"],
                 "supplier_id": supplier1.id,
-                "price": Decimal("73.80"),
+                "price": Decimal("68.00"),
                 "unit": "kg",
-                "brand": "Tata Tiscon",
-                "description": "Heavy-duty 16mm ribbed thermo-mechanically treated bar engineered for ground beam and structural column cages.",
-                "stock": 3200,
-                "image_url": "https://images.unsplash.com/photo-1535813547-99c456a41d4a?w=600&auto=format&fit=crop&q=80"
+                "brand": "Kamdhenu",
+                "description": "Plain circular mild steel rods for fabrication, window grills, structural stirrups, and miscellaneous anchor ties.",
+                "stock": 3500,
+                "image_url": "/images/materials/ms_rods.png"
             },
             {
-                "name": "JSW Neosteel Fe550D TMT Bar (10mm)",
+                "name": "Steel Angles (MS Equal Angles 50x50x5mm)",
                 "category_id": cat_map["steel"],
                 "supplier_id": supplier1.id,
-                "price": Decimal("71.50"),
+                "price": Decimal("72.00"),
                 "unit": "kg",
-                "brand": "JSW",
-                "description": "Pure steel manufactured from virgin iron ore with lowest sulfur-phosphorus impurity levels, providing high fatigue strength.",
+                "brand": "SAIL",
+                "description": "L-shaped structural mild steel angles for roof trusses, support purlins, shed fabrication, and industrial mezzanines.",
+                "stock": 2400,
+                "image_url": "/images/materials/steel_angles.png"
+            },
+            {
+                "name": "Steel Channels (ISMC 100 / 150 Structural C-Channel)",
+                "category_id": cat_map["steel"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("73.50"),
+                "unit": "kg",
+                "brand": "Jindal Steel",
+                "description": "Hot-rolled C-shaped structural steel sections used as heavy load-bearing purlins, lintels, and bridge stringers.",
+                "stock": 2000,
+                "image_url": "/images/materials/steel_channels.png"
+            },
+            {
+                "name": "Steel Sheets (Galvanized Plain GP / CR Sheet 1.2mm)",
+                "category_id": cat_map["steel"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("78.00"),
+                "unit": "kg",
+                "brand": "Tata Shaktee",
+                "description": "Corrosion-resistant zinc-galvanized flat steel sheets for shuttering plates, ducting, and weather barrier cladding.",
                 "stock": 1800,
-                "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80"
+                "image_url": "/images/materials/steel_sheets.png"
             },
-            # Bricks
             {
-                "name": "Wienerberger Porotherm Clay Hollow Bricks",
-                "category_id": cat_map["bricks"],
+                "name": "Binding Wire (18 Gauge Annealed GI Binding Wire)",
+                "category_id": cat_map["steel"],
                 "supplier_id": supplier1.id,
-                "price": Decimal("48.00"),
-                "unit": "piece",
-                "brand": "Wienerberger",
-                "description": "Precision perforated clay blocks offering 60% weight reduction compared to red bricks and exceptional thermal insulation for external walls.",
-                "stock": 3000,
-                "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&auto=format&fit=crop&q=80"
+                "price": Decimal("85.00"),
+                "unit": "kg",
+                "brand": "Apex Steel",
+                "description": "Soft annealed galvanized iron wire for tightly binding reinforcement rebar intersections prior to slab casting.",
+                "stock": 900,
+                "image_url": "/images/materials/binding_wire.png"
             },
             {
-                "name": "Standard Red Clay Table-Moulded Bricks",
+                "name": "Steel Pipes (MS Round & Square Hollow Sections 2-Inch)",
+                "category_id": cat_map["steel"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("76.00"),
+                "unit": "kg",
+                "brand": "APL Apollo",
+                "description": "High torsional resistance hollow structural pipe for staircase railings, boundary gates, canopy framing, and scaffolding poles.",
+                "stock": 2200,
+                "image_url": "/images/materials/steel_pipes.png"
+            },
+
+            # 3. BRICKS & BLOCKS (செங்கல்)
+            {
+                "name": "Red Clay Bricks (First Class Kiln-Fired Red Chamber Bricks)",
                 "category_id": cat_map["bricks"],
                 "supplier_id": supplier1.id,
                 "price": Decimal("9.50"),
                 "unit": "piece",
                 "brand": "Standard Clay",
-                "description": "Kiln-baked first-class red clay bricks with sharp arrises and high compressive crushing strength (> 3.5 N/mm2).",
-                "stock": 15000,
-                "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&auto=format&fit=crop&q=80"
+                "description": "First-class table-moulded kiln-fired red clay bricks with uniform cherry color, sharp edges, and high crushing resistance (> 3.5 MPa).",
+                "stock": 25000,
+                "image_url": "/images/materials/red_clay_bricks.png"
             },
             {
-                "name": "Birla Aerocon AAC Lightweight Blocks (600x200x150mm)",
+                "name": "Fly Ash Bricks (Machine-Pressed Cement Fly Ash)",
+                "category_id": cat_map["bricks"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("7.80"),
+                "unit": "piece",
+                "brand": "EcoBricks",
+                "description": "Eco-friendly uniform industrial bricks requiring 30% less mortar plastering with zero water absorption efflorescence.",
+                "stock": 20000,
+                "image_url": "/images/materials/fly_ash_bricks.png"
+            },
+            {
+                "name": "AAC Blocks (Birla Aerocon / Magicrete 600x200x150mm)",
                 "category_id": cat_map["bricks"],
                 "supplier_id": supplier2.id,
                 "price": Decimal("62.00"),
                 "unit": "piece",
                 "brand": "Birla Aerocon",
-                "description": "Autoclaved aerated concrete block delivering non-combustible 4-hour fire rating and rapid structural wall installation speed.",
-                "stock": 1200,
-                "image_url": "https://images.unsplash.com/photo-1541888946425-d0fbb18086f7?w=600&auto=format&fit=crop&q=80"
+                "description": "Autoclaved Aerated Concrete lightweight thermal blocks cutting dead load by 50% with superior thermal insulation and fire safety.",
+                "stock": 2500,
+                "image_url": "/images/materials/aac_blocks.png"
             },
-            # Sand
             {
-                "name": "Washed M-Sand for Concrete Casting (Zone-II)",
+                "name": "Solid Concrete Blocks (8-Inch Heavy Duty)",
+                "category_id": cat_map["bricks"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("44.00"),
+                "unit": "piece",
+                "brand": "BuildStone",
+                "description": "High-density vibrated solid concrete blocks for load-bearing external perimeter walls, basement retaining and boundary walls.",
+                "stock": 4000,
+                "image_url": "/images/materials/solid_concrete_blocks.png"
+            },
+            {
+                "name": "Hollow Concrete Blocks (8-Inch 2-Hole Acoustic)",
+                "category_id": cat_map["bricks"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("38.00"),
+                "unit": "piece",
+                "brand": "BuildStone",
+                "description": "Precast hollow cavity masonry blocks providing thermal cooling and conduits for concealed electrical plumbing runs.",
+                "stock": 3500,
+                "image_url": "/images/materials/hollow_blocks.png"
+            },
+            {
+                "name": "Paver Blocks (60mm Zig-Zag Heavy Duty Interlocking Tiles)",
+                "category_id": cat_map["bricks"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("18.50"),
+                "unit": "piece",
+                "brand": "UltraPaver",
+                "description": "Interlocking hydraulic-pressed concrete block for car parking bays, factory driveways, and garden pedestrian pathways.",
+                "stock": 6000,
+                "image_url": "/images/materials/paver_blocks.png"
+            },
+
+            # 4. SAND (மணல்)
+            {
+                "name": "River Sand (Government Approved Natural Washed River Sand)",
+                "category_id": cat_map["sand"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("2400.00"),
+                "unit": "ton",
+                "brand": "Cauvery River Sand",
+                "description": "Natural screened river bed sand certified zero-silt for high-grade finish plastering and historic lime-surkhi masonry.",
+                "stock": 150,
+                "image_url": "/images/materials/river_sand.png"
+            },
+            {
+                "name": "M-Sand (Manufactured Concrete Sand Zone-II)",
                 "category_id": cat_map["sand"],
                 "supplier_id": supplier2.id,
                 "price": Decimal("1450.00"),
                 "unit": "ton",
                 "brand": "RoboSand",
-                "description": "Triple-washed manufactured granite sand free from silt and clay contamination, matching IS:383 grading specifications.",
-                "stock": 120,
-                "image_url": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=600&auto=format&fit=crop&q=80"
+                "description": "VSI-crushed granite sand graded strictly to IS:383 Zone II for dense void-free structural RCC concrete slabs and columns.",
+                "stock": 300,
+                "image_url": "/images/materials/m_sand.png"
             },
             {
-                "name": "Super-Fine Plastering P-Sand",
+                "name": "P-Sand (Plastering Manufactured Sand Zone-IV)",
                 "category_id": cat_map["sand"],
                 "supplier_id": supplier2.id,
                 "price": Decimal("1650.00"),
                 "unit": "ton",
                 "brand": "RoboSand",
-                "description": "Air-classified fine plaster sand achieving zero-crack mirror finish for interior wall rendering and ceiling putty prep.",
-                "stock": 80,
-                "image_url": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=600&auto=format&fit=crop&q=80"
+                "description": "Air-classified fine washed sand under 150 microns for smooth interior wall rendering without shrinkage micro-cracks.",
+                "stock": 250,
+                "image_url": "/images/materials/p_sand.png"
             },
-            # Gravel
             {
-                "name": "20mm Blue Metal Granite Aggregate",
+                "name": "Plastering Sand (Ultra-Fine Washed Silica Plaster Sand)",
+                "category_id": cat_map["sand"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("1750.00"),
+                "unit": "ton",
+                "brand": "SilicaPlast",
+                "description": "Screened fine-grain silica sand engineered specifically for ceiling plaster skim coats and decorative cornice mouldings.",
+                "stock": 120,
+                "image_url": "/images/materials/plastering_sand.png"
+            },
+            {
+                "name": "Filter Sand (Graded Coarse Filtration & Drainage Sand)",
+                "category_id": cat_map["sand"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("1300.00"),
+                "unit": "ton",
+                "brand": "HydroFilter",
+                "description": "Coarse round-grain quartz sand for rainwater harvesting recharge pits, drainage French drains, and water treatment filter beds.",
+                "stock": 100,
+                "image_url": "/images/materials/filter_sand.png"
+            },
+
+            # 5. GRAVEL & AGGREGATES (ஜல்லி)
+            {
+                "name": "6mm Jelly (6mm Granite Aggregate Chips)",
                 "category_id": cat_map["gravel"],
                 "supplier_id": supplier2.id,
-                "price": Decimal("980.00"),
+                "price": Decimal("1050.00"),
                 "unit": "ton",
                 "brand": "Apex Quarry",
-                "description": "Machine-crushed angular hard blue granite stone aggregate providing structural interlock in M20 and M25 design mixes.",
+                "description": "Fine 6mm granite chips used for solid block manufacturing, thin mosaic flooring base, and precast window lintels.",
                 "stock": 150,
-                "image_url": "https://images.unsplash.com/photo-1541888946425-d0fbb18086f7?w=600&auto=format&fit=crop&q=80"
+                "image_url": "/images/materials/6mm_jelly.png"
             },
             {
-                "name": "12mm Down Fine Aggregate Chips",
+                "name": "10mm Jelly (10mm Graded Concrete Coarse Jelly)",
                 "category_id": cat_map["gravel"],
                 "supplier_id": supplier2.id,
                 "price": Decimal("1020.00"),
                 "unit": "ton",
                 "brand": "Apex Quarry",
-                "description": "Granite screenings used for beam consolidation and precast lintel fabrication.",
-                "stock": 90,
-                "image_url": "https://images.unsplash.com/photo-1541888946425-d0fbb18086f7?w=600&auto=format&fit=crop&q=80"
+                "description": "Clean machine-crushed 10mm aggregate essential for dense congested rebar beam consolidation and pumpable concrete.",
+                "stock": 200,
+                "image_url": "/images/materials/10mm_jelly.png"
             },
-            # Tiles
             {
-                "name": "Kajaria Double Charged Vitrified Floor Tiles (600x600mm)",
+                "name": "12mm Jelly (12mm Intermediate Blue Metal Aggregate)",
+                "category_id": cat_map["gravel"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("1000.00"),
+                "unit": "ton",
+                "brand": "Apex Quarry",
+                "description": "Intermediate blue metal granite aggregate for floor screeds, compound wall beams, and precast drainage channels.",
+                "stock": 180,
+                "image_url": "/images/materials/12mm_jelly.png"
+            },
+            {
+                "name": "20mm Jelly (20mm High-Strength Structural RCC Aggregate Jelly)",
+                "category_id": cat_map["gravel"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("980.00"),
+                "unit": "ton",
+                "brand": "Apex Quarry",
+                "description": "Prime structural angular 20mm granite stone aggregate meeting IS 383 specifications for M20, M25, and M30 grade RCC slabs and columns.",
+                "stock": 400,
+                "image_url": "/images/materials/20mm_jelly.png"
+            },
+            {
+                "name": "40mm Jelly (40mm Sub-Base & Foundation Heavy Jelly Stone)",
+                "category_id": cat_map["gravel"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("890.00"),
+                "unit": "ton",
+                "brand": "Apex Quarry",
+                "description": "Large 40mm broken blue metal stone for Plain Cement Concrete (PCC) footing bed foundation, road metalling, and railway ballast.",
+                "stock": 350,
+                "image_url": "/images/materials/40mm_jelly.png"
+            },
+            {
+                "name": "Stone Dust (Granite Crusher Dust for Masonry Bedding)",
+                "category_id": cat_map["gravel"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("650.00"),
+                "unit": "ton",
+                "brand": "Apex Quarry",
+                "description": "Granite crusher screenings for paver tile leveling bedding, sub-base compaction, and trench pipe surround cushion.",
+                "stock": 250,
+                "image_url": "/images/materials/stone_dust.png"
+            },
+            {
+                "name": "Crushed Stone (Machine-Crushed Hard Blue Granite Stone GSB)",
+                "category_id": cat_map["gravel"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("820.00"),
+                "unit": "ton",
+                "brand": "Apex Quarry",
+                "description": "Graded wet-mix Granular Sub-Base (GSB) crushed rock mixture for solid pavement bases and driveway stabilization.",
+                "stock": 300,
+                "image_url": "/images/materials/crushed_stone.png"
+            },
+
+            # 6. TILES & FLOORING (டைல்ஸ்)
+            {
+                "name": "Ceramic Tiles (Digital Glazed Bathroom Wall Tiles 300x450mm)",
+                "category_id": cat_map["tiles"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("42.00"),
+                "unit": "sqft",
+                "brand": "Kajaria",
+                "description": "Gloss-finish stain-resistant ceramic wall tiles for bathroom dado and kitchen splashbacks.",
+                "stock": 4000,
+                "image_url": "/images/materials/ceramic_tiles.png"
+            },
+            {
+                "name": "Vitrified Tiles (Double Charged High-Gloss 600x600mm)",
                 "category_id": cat_map["tiles"],
                 "supplier_id": supplier1.id,
                 "price": Decimal("68.00"),
                 "unit": "sqft",
                 "brand": "Kajaria",
-                "description": "Nano-polished stain-resistant vitrified tiles engineered with 3-4mm double layer pattern for high-traffic living rooms.",
-                "stock": 2400,
-                "image_url": "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?w=600&auto=format&fit=crop&q=80"
+                "description": "Nano-sealed 3-4mm double layer vitrified floor tiles with high abrasion resistance for living rooms and bedrooms.",
+                "stock": 5000,
+                "image_url": "/images/materials/vitrified_tiles.png"
             },
             {
-                "name": "Somany Anti-Skid Matte Bathroom Ceramic Tiles (300x300mm)",
+                "name": "Porcelain Tiles (Full Body Matt Porcelain Slabs 600x1200mm)",
                 "category_id": cat_map["tiles"],
                 "supplier_id": supplier1.id,
-                "price": Decimal("46.00"),
+                "price": Decimal("95.00"),
                 "unit": "sqft",
                 "brand": "Somany",
-                "description": "Textured wet-area floor tile offering R10 slip-resistance rating and chemical detergent resistance.",
-                "stock": 1600,
-                "image_url": "https://images.unsplash.com/photo-1584467541268-b040f83be3fd?w=600&auto=format&fit=crop&q=80"
+                "description": "Commercial-grade full body porcelain tile for luxury villas, office lobbies, and outdoor terraces.",
+                "stock": 3200,
+                "image_url": "/images/materials/porcelain_tiles.png"
             },
-            # Paint
             {
-                "name": "Asian Paints Apex Ultima Weatherproof Exterior Emulsion",
-                "category_id": cat_map["paint"],
+                "name": "Granite (Black Galaxy / Tan Brown Polished Slabs)",
+                "category_id": cat_map["tiles"],
                 "supplier_id": supplier1.id,
-                "price": Decimal("340.00"),
-                "unit": "liter",
-                "brand": "Asian Paints",
-                "description": "Advanced silicone-additive exterior wall paint with colour-stay technology and 7-year comprehensive anti-fungal warranty.",
-                "stock": 250,
-                "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&auto=format&fit=crop&q=80"
+                "price": Decimal("145.00"),
+                "unit": "sqft",
+                "brand": "Apex Granite",
+                "description": "Mirror-polished 18mm natural granite slabs for kitchen counters, staircase treads, door thresholds, and vanity tops.",
+                "stock": 2800,
+                "image_url": "/images/materials/granite.png"
             },
             {
-                "name": "Asian Paints Royale Luxury Interior Matt Emulsion",
+                "name": "Marble (Makrana Pure White Indian Marble Slabs)",
+                "category_id": cat_map["tiles"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("220.00"),
+                "unit": "sqft",
+                "brand": "Royal Marble",
+                "description": "Classic cool natural crystalline calcium marble for temple rooms, luxury halls, and heritage floorings.",
+                "stock": 1500,
+                "image_url": "/images/materials/marble.png"
+            },
+            {
+                "name": "Parking Tiles (Heavy-Duty Anti-Skid 300x300x12mm Paver Tiles)",
+                "category_id": cat_map["tiles"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("48.00"),
+                "unit": "sqft",
+                "brand": "Nitco",
+                "description": "Heavy vehicular weight-rated parking floor tiles with punching relief pattern for vehicle garages and driveways.",
+                "stock": 3500,
+                "image_url": "/images/materials/parking_tiles.png"
+            },
+            {
+                "name": "Wooden Flooring (Water-Resistant Laminated HDF AC4 Planks)",
+                "category_id": cat_map["tiles"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("110.00"),
+                "unit": "sqft",
+                "brand": "Action TESA",
+                "description": "Click-lock acoustic German-technology interlocking wood flooring for master bedrooms and home theaters.",
+                "stock": 2000,
+                "image_url": "/images/materials/wooden_flooring.png"
+            },
+            {
+                "name": "Anti-Skid Tiles (Matte R10 Textured Wet-Area Floor Tiles)",
+                "category_id": cat_map["tiles"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("45.00"),
+                "unit": "sqft",
+                "brand": "Somany",
+                "description": "High friction textured ceramic tiles preventing slips in shower cubicles, swimming pool decks, and utility balconies.",
+                "stock": 3000,
+                "image_url": "/images/materials/anti_skid_tiles.png"
+            },
+
+            # 7. PAINT & FINISHES (பெயிண்ட்)
+            {
+                "name": "Interior Paint (Asian Paints Royale Luxury Interior Matt)",
                 "category_id": cat_map["paint"],
                 "supplier_id": supplier1.id,
                 "price": Decimal("420.00"),
                 "unit": "liter",
                 "brand": "Asian Paints",
-                "description": "Teflon-surface-protected ultra-smooth interior wall paint with stain repellent properties and zero VOC formulation.",
-                "stock": 180,
-                "image_url": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=600&auto=format&fit=crop&q=80"
+                "description": "Teflon-protected luxury acrylic interior wall paint with anti-fungal shield and washable stain-resistance.",
+                "stock": 450,
+                "image_url": "/images/materials/interior_paint.png"
             },
-            # Plumbing
             {
-                "name": "Ashirvad FlowGuard Plus CPVC Hot & Cold Pipe (1 inch x 3m)",
+                "name": "Exterior Paint (Asian Paints Apex Ultima Weatherproof)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("340.00"),
+                "unit": "liter",
+                "brand": "Asian Paints",
+                "description": "Silicone-infused exterior wall coating offering 7 years weather protection against tropical rain, UV bleaching, and algae.",
+                "stock": 500,
+                "image_url": "/images/materials/exterior_paint.png"
+            },
+            {
+                "name": "Primer (Berger WeatherCoat Water-Based Exterior/Interior Wall Primer)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("160.00"),
+                "unit": "liter",
+                "brand": "Berger",
+                "description": "Deep-penetrating acrylic primer binding loose plaster dust and reducing topcoat paint consumption by 25%.",
+                "stock": 400,
+                "image_url": "/images/materials/primer.png"
+            },
+            {
+                "name": "Wall Putty (Birla White Polymer-Modified Waterproof Putty 40kg)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("920.00"),
+                "unit": "bag",
+                "brand": "Birla White",
+                "description": "White cement-based fine polymer putty providing an ultra-smooth silk finish and water repellency prior to priming.",
+                "stock": 350,
+                "image_url": "/images/materials/wall_putty.png"
+            },
+            {
+                "name": "Enamel Paint (Asian Paints Apcolite Premium Gloss Enamel)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("380.00"),
+                "unit": "liter",
+                "brand": "Asian Paints",
+                "description": "Oil-based mirror-gloss enamel paint for steel grills, window frames, wooden doors, and exterior gate protection.",
+                "stock": 300,
+                "image_url": "/images/materials/enamel_paint.png"
+            },
+            {
+                "name": "Texture Paint (Exterior Heritage Granular Flake Texture Coating)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("1250.00"),
+                "unit": "bucket",
+                "brand": "Asian Paints",
+                "description": "Architectural high-build quartz sand finish creating textured patterns on building facade elevations.",
+                "stock": 180,
+                "image_url": "/images/materials/texture_paint.png"
+            },
+            {
+                "name": "Waterproof Coating (Dr. Fixit Fastflex 2K Acrylic Flexible Polymer)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("2450.00"),
+                "unit": "bucket",
+                "brand": "Dr. Fixit",
+                "description": "Elastomeric 2-component membrane for terrace waterproofing, sunken toilet waterproofing, and underground water sumps.",
+                "stock": 200,
+                "image_url": "/images/materials/waterproof_coating.png"
+            },
+            {
+                "name": "Wood Polish (Asian Paints Touchwood PU Clear Gloss Wood Varnish)",
+                "category_id": cat_map["paint"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("460.00"),
+                "unit": "liter",
+                "brand": "Asian Paints",
+                "description": "Scratch-resistant polyurethane wood finish highlighting natural teakwood grain on front doors and banisters.",
+                "stock": 150,
+                "image_url": "/images/materials/wood_polish.png"
+            },
+
+            # 8. PLUMBING & DRAINAGE (பிளம்பிங்)
+            {
+                "name": "PVC Pipes (Supreme 4-Inch SWR Drainage & Rainwater Pipe 3m)",
                 "category_id": cat_map["plumbing"],
                 "supplier_id": supplier2.id,
-                "price": Decimal("380.00"),
+                "price": Decimal("680.00"),
+                "unit": "piece",
+                "brand": "Supreme",
+                "description": "Rigid polyvinyl chloride drainage pipe with rubber ring socket for storm water, sewage, and rainwater down-take stacks.",
+                "stock": 400,
+                "image_url": "/images/materials/pvc_pipes.png"
+            },
+            {
+                "name": "CPVC Pipes (Ashirvad FlowGuard Plus SDR 11 Hot & Cold Pipe 1-Inch)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("420.00"),
                 "unit": "piece",
                 "brand": "Ashirvad",
-                "description": "NSF-certified chlorate polyvinyl chloride potable water line capable of withstanding temperatures up to 93°C.",
-                "stock": 300,
-                "image_url": "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&auto=format&fit=crop&q=80"
+                "description": "Chlorinated polyvinyl chloride potable drinking water line withstanding temperatures up to 93°C for geyser connections.",
+                "stock": 500,
+                "image_url": "/images/materials/cpvc_pipes.png"
             },
             {
-                "name": "Astral Silencio 4-Inch SWR Soundproof Drainage Pipe",
+                "name": "UPVC Pipes (Astral Aquarius Lead-Free Plumbing Pipe 3/4-Inch)",
                 "category_id": cat_map["plumbing"],
                 "supplier_id": supplier2.id,
-                "price": Decimal("1150.00"),
+                "price": Decimal("310.00"),
                 "unit": "piece",
                 "brand": "Astral",
-                "description": "Three-layer mineral-reinforced acoustic drainage pipe engineered to minimize plumbing rush noise through vertical ducts.",
-                "stock": 140,
-                "image_url": "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&auto=format&fit=crop&q=80"
+                "description": "Lead-free cold water distribution line resistant to corrosion and chemical calcification over 50 years lifespan.",
+                "stock": 450,
+                "image_url": "/images/materials/upvc_pipes.png"
             },
-            # Electrical
             {
-                "name": "Havells LifeLine Plus 2.5 sq mm FR-LSH Copper Wire (90m Roll)",
+                "name": "HDPE Pipes (High-Density Polyethylene Underground Coil 50m)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("3200.00"),
+                "unit": "coil",
+                "brand": "Finolex",
+                "description": "Flexible tough underground black HDPE pipe for main municipal water connection and borewell submersibles.",
+                "stock": 80,
+                "image_url": "/images/materials/hdpe_pipes.png"
+            },
+            {
+                "name": "Pipe Elbows (Ashirvad CPVC 90-Degree Brass Threaded Elbows 1-Inch)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("95.00"),
+                "unit": "piece",
+                "brand": "Ashirvad",
+                "description": "Heavy brass insert female elbow ensuring leak-free transition to chrome-plated taps and shower arms.",
+                "stock": 1200,
+                "image_url": "/images/materials/pipe_elbows.png"
+            },
+            {
+                "name": "Pipe Tees (Astral UPVC Equal Branch Plumbing Tee 1-Inch)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("48.00"),
+                "unit": "piece",
+                "brand": "Astral",
+                "description": "T-junction directional flow divider for balancing water supply into multiple bathroom lines.",
+                "stock": 900,
+                "image_url": "/images/materials/pipe_tees.png"
+            },
+            {
+                "name": "Water Taps (Jaquar Solid Brass Chrome Plated Quarter-Turn Bib Tap)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("950.00"),
+                "unit": "piece",
+                "brand": "Jaquar",
+                "description": "Heavy forged solid brass construction with ceramic disc cartridge tested to 500,000 operation cycles.",
+                "stock": 350,
+                "image_url": "/images/materials/water_taps.png"
+            },
+            {
+                "name": "Valves (Zoloto Heavy Duty Full Bore Brass Ball Valve 1-Inch)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("680.00"),
+                "unit": "piece",
+                "brand": "Zoloto",
+                "description": "Full bore flow isolation valve with PTFE packing seats for main water meter and tank shut-off lines.",
+                "stock": 250,
+                "image_url": "/images/materials/valves.png"
+            },
+            {
+                "name": "Floor Traps (Jindal SS-304 Anti-Foul Cockroach Proof Trap 150mm)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("240.00"),
+                "unit": "piece",
+                "brand": "Jindal",
+                "description": "Stainless steel square drain grating with water seal trap blocking sewer gas odors and insect entry.",
+                "stock": 600,
+                "image_url": "/images/materials/floor_traps.png"
+            },
+            {
+                "name": "Water Tanks (Sintex 1000 Liter Triple-Layer Antibacterial Overhead Tank)",
+                "category_id": cat_map["plumbing"],
+                "supplier_id": supplier2.id,
+                "price": Decimal("7800.00"),
+                "unit": "piece",
+                "brand": "Sintex",
+                "description": "FDA approved virgin food-grade plastic water storage tank with UV stabilization shield and anti-algae inner layer.",
+                "stock": 45,
+                "image_url": "/images/materials/water_tanks.png"
+            },
+
+            # 9. ELECTRICAL & WIRING (எலக்ட்ரிக்கல்)
+            {
+                "name": "Electrical Wires (Havells LifeLine Plus 2.5 sq mm FR Copper Wire 90m)",
                 "category_id": cat_map["electrical"],
                 "supplier_id": supplier1.id,
                 "price": Decimal("2450.00"),
-                "unit": "piece",
+                "unit": "coil",
                 "brand": "Havells",
-                "description": "100% electrolytic oxygen-free copper building wire insulated with flame-retardant low-smoke zero-halogen compound.",
-                "stock": 110,
-                "image_url": "https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?w=600&auto=format&fit=crop&q=80"
+                "description": "100% electrolytic annealed copper wire with flame-retardant low smoke insulation for lighting and power circuits.",
+                "stock": 180,
+                "image_url": "/images/materials/electrical_wires.png"
             },
             {
-                "name": "Polycab 4.0 sq mm Heavy Appliance Cable (90m Coil)",
+                "name": "Cables (Polycab 4-Core 6.0 sq mm Aluminium Armoured Power Cable 50m)",
                 "category_id": cat_map["electrical"],
                 "supplier_id": supplier1.id,
-                "price": Decimal("3850.00"),
-                "unit": "piece",
+                "price": Decimal("8500.00"),
+                "unit": "coil",
                 "brand": "Polycab",
-                "description": "Heavy-duty power cable rated for 32 Amp continuous AC units, commercial geysers, and welding points.",
-                "stock": 85,
-                "image_url": "https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?w=600&auto=format&fit=crop&q=80"
+                "description": "Steel-tape armoured underground service cable connecting EB electric meter to main distribution panel.",
+                "stock": 60,
+                "image_url": "/images/materials/cables.png"
             },
             {
-                "name": "Schneider Electric EasyPact Double Pole MCB (32 Amp)",
+                "name": "Switches (Legrand Arteor / Anchor Roma 6A Modular Switch 10-Pack)",
+                "category_id": cat_map["electrical"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("480.00"),
+                "unit": "box",
+                "brand": "Legrand",
+                "description": "Ultra-smooth soft click modular switches with silver cadmium oxide contacts for spark-free performance.",
+                "stock": 500,
+                "image_url": "/images/materials/switches.png"
+            },
+            {
+                "name": "Sockets (Legrand 6/16A Universal 3-Pin Modular Power Socket)",
+                "category_id": cat_map["electrical"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("140.00"),
+                "unit": "piece",
+                "brand": "Legrand",
+                "description": "Child-safe safety shutter power socket for ACs, refrigerators, water heaters, and power tools.",
+                "stock": 700,
+                "image_url": "/images/materials/sockets.png"
+            },
+            {
+                "name": "MCB (Schneider Electric EasyPact 32A C-Curve Miniature Circuit Breaker)",
                 "category_id": cat_map["electrical"],
                 "supplier_id": supplier1.id,
                 "price": Decimal("680.00"),
                 "unit": "piece",
                 "brand": "Schneider",
-                "description": "Thermal magnetic trip curve C miniature circuit breaker ensuring protection against overload and short circuits up to 10kA.",
-                "stock": 95,
-                "image_url": "https://images.unsplash.com/photo-1544724569-5f546fd6f2b5?w=600&auto=format&fit=crop&q=80"
+                "description": "10kA breaking capacity double pole circuit breaker tripping on short circuits and power overloads.",
+                "stock": 350,
+                "image_url": "/images/materials/mcb.png"
+            },
+            {
+                "name": "Distribution Board (Havells 8-Way Double Door Metal Clad DB)",
+                "category_id": cat_map["electrical"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("1850.00"),
+                "unit": "piece",
+                "brand": "Havells",
+                "description": "IP43 dust-protected cold-rolled steel consumer unit with copper busbar and neutral link.",
+                "stock": 120,
+                "image_url": "/images/materials/distribution_board.png"
+            },
+            {
+                "name": "LED Lights (Philips 15W Concealed Round Ceiling Downlight Panel 5-Pack)",
+                "category_id": cat_map["electrical"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("1650.00"),
+                "unit": "box",
+                "brand": "Philips",
+                "description": "Warm white / Cool daylight 1500 lumen energy-saving LED slim recessed ceiling panels.",
+                "stock": 250,
+                "image_url": "/images/materials/led_lights.png"
+            },
+            {
+                "name": "Conduits (VIP Heavy Mechanical 25mm Fire-Retardant PVC Conduit Pipes 3m)",
+                "category_id": cat_map["electrical"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("85.00"),
+                "unit": "piece",
+                "brand": "VIP",
+                "description": "High impact resistant electrical conduit pipe cast inside RCC concrete slabs and chased into brick walls.",
+                "stock": 1500,
+                "image_url": "/images/materials/conduits.png"
+            },
+            {
+                "name": "Junction Boxes (Precast Metal Galvanized 4-Way Wall Box)",
+                "category_id": cat_map["electrical"],
+                "supplier_id": supplier1.id,
+                "price": Decimal("45.00"),
+                "unit": "piece",
+                "brand": "VIP",
+                "description": "Deep stamped metal enclosure with grounding screw for wire pulling and branch connections.",
+                "stock": 1000,
+                "image_url": "/images/materials/junction_boxes.png"
             }
         ]
 
-        for pdata in products_data:
+        logger.info(f"Adding {len(full_materials_list)} products to database...")
+        for pdata in full_materials_list:
             slug = f"{pdata['name'].lower().replace(' ', '-').replace('/', '-').replace('(', '').replace(')', '')[:50]}"
             stock = pdata.pop("stock")
             img_url = pdata.pop("image_url")
@@ -450,8 +1014,8 @@ def seed_database():
                 is_approved=True,
                 approval_status=ApprovalStatus.APPROVED,
                 is_active=True,
-                rating=4.8,
-                total_reviews=15
+                rating=4.85,
+                total_reviews=28
             )
             db.add(p)
             db.flush()
@@ -490,9 +1054,10 @@ def seed_database():
         )
         db.add(order_item)
 
+        deliv_partner_prof = db.query(DeliveryPartnerProfile).first()
         delivery = Delivery(
             order_id=order.id,
-            delivery_partner_id=delivery_profile.id,
+            delivery_partner_id=deliv_partner_prof.id if deliv_partner_prof else None,
             tracking_number="TRK-SB-INIT9988",
             address="Plot 104, Outer Ring Road, Bellandur, Bangalore - 560103",
             status=DeliveryStatus.PICKED_UP,
@@ -512,7 +1077,7 @@ def seed_database():
         db.add(payment)
 
         db.commit()
-        logger.info("Database successfully seeded with 4 demo accounts, 9 categories, 22 products, and initial order!")
+        logger.info(f"Database successfully populated with all {len(categories_data)} categories and all {len(full_materials_list)} products!")
     except Exception as e:
         db.rollback()
         logger.error(f"Error seeding database: {e}", exc_info=True)
@@ -520,4 +1085,4 @@ def seed_database():
         db.close()
 
 if __name__ == "__main__":
-    seed_database()
+    seed_database(force_refresh=True)

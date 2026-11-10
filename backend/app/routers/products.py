@@ -44,7 +44,7 @@ def list_products(
     in_stock: Optional[bool] = None,
     sort_by: Optional[str] = "latest",  # latest, price_asc, price_desc, rating
     page: int = Query(1, ge=1),
-    limit: int = Query(12, ge=1, le=50),
+    limit: int = Query(12, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     query = db.query(Product).options(

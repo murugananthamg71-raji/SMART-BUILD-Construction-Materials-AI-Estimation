@@ -134,7 +134,15 @@ export default function LandingPage() {
             >
               <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center overflow-hidden border border-amber-100 group-hover:scale-110 transition-transform">
                 {cat.image_url ? (
-                  <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" />
+                  <img
+                    src={cat.image_url}
+                    alt={cat.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?w=200&auto=format&fit=crop&q=60';
+                    }}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Layers className="w-7 h-7 text-amber-600" />
                 )}

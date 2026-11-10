@@ -14,8 +14,8 @@ def test_list_categories():
     data = res.json()
     assert len(data) >= 9
     names = [c["name"] for c in data]
-    assert "Cement" in names
-    assert "Steel" in names
+    assert any("Cement" in n for n in names)
+    assert any("Steel" in n for n in names)
 
 def test_list_products():
     res = client.get("/api/products")

@@ -79,11 +79,15 @@ export default function ProductDetailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-10 bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm">
         {/* Left: Product Image */}
         <div className="md:col-span-6 space-y-4">
-          <div className="aspect-4/3 rounded-2xl overflow-hidden bg-slate-100 border border-slate-100">
+          <div className="aspect-4/3 rounded-2xl overflow-hidden bg-white p-6 border border-slate-200 flex items-center justify-center shadow-xs">
             <img
               src={product.images?.[0]?.image_url || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80'}
               alt={product.name}
-              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?w=800&auto=format&fit=crop&q=80';
+              }}
+              className="max-h-full max-w-full object-contain"
             />
           </div>
           <div className="grid grid-cols-3 gap-3 text-center text-xs text-slate-600 font-medium">

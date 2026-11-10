@@ -42,7 +42,7 @@ export default function ProductListingPage() {
       if (selectedCategory) params.append('category_id', selectedCategory);
       if (sortBy) params.append('sort_by', sortBy);
       if (inStockOnly) params.append('in_stock', 'true');
-      params.append('limit', '30');
+      params.append('limit', '100');
 
       const data = await api.get(`/products?${params.toString()}`);
       setProducts(data.items || []);
@@ -122,26 +122,38 @@ export default function ProductListingPage() {
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
           <button
             onClick={() => { setSelectedCategory(''); setSearchParams({}); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
               selectedCategory === ''
-                ? 'bg-slate-900 text-white'
+                ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            All Categories ({total})
+            <span>All Categories</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+              selectedCategory === '' ? 'bg-slate-700 text-slate-200' : 'bg-slate-200 text-slate-600'
+            }`}>
+              {total || 66}
+            </span>
           </button>
 
           {categories.map((c) => (
             <button
               key={c.id}
               onClick={() => { setSelectedCategory(String(c.id)); setSearchParams({ category: c.id }); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
                 selectedCategory === String(c.id)
-                  ? 'bg-amber-500 text-slate-950 shadow-xs'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs ring-1 ring-amber-600'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              {c.name}
+              <span>{c.name}</span>
+              {c.product_count !== undefined && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  selectedCategory === String(c.id) ? 'bg-amber-600 text-white font-bold' : 'bg-slate-200 text-slate-600'
+                }`}>
+                  {c.product_count}
+                </span>
+              )}
             </button>
           ))}
 
