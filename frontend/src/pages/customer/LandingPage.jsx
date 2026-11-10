@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Building2, 
@@ -16,31 +16,12 @@ import {
   Compass,
   Headphones
 } from 'lucide-react';
-import api from '../../services/api';
-import ProductCard from '../../components/products/ProductCard';
 
 export default function LandingPage() {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   // Quick interactive mini-estimator state
   const [plotLength, setPlotLength] = useState(40);
   const [plotWidth, setPlotWidth] = useState(30);
   const [plotFloors, setPlotFloors] = useState(2);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const prodData = await api.get('/products?limit=8');
-        setFeaturedProducts(prodData.items || []);
-      } catch (err) {
-        console.error('Failed to load landing page data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const previewArea = plotLength * plotWidth * plotFloors;
   const previewCement = Math.ceil(previewArea * 0.42);
@@ -107,27 +88,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 2. FEATURED MATERIALS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex items-end justify-between">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Featured Materials</h2>
-            <p className="text-sm text-slate-500 mt-1">Wholesale pricing direct from verified industrial manufacturers.</p>
-          </div>
-          <Link to="/materials" className="text-xs sm:text-sm font-bold text-amber-600 hover:text-amber-500 flex items-center">
-            <span>Browse All Materials</span>
-            <ChevronRight className="w-4 h-4 ml-0.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* 4. AI ESTIMATOR PREVIEW SECTION */}
+      {/* 2. AI ESTIMATOR PREVIEW SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-br from-[#102A43] to-[#1E3A5F] rounded-3xl p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden border border-slate-700">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
