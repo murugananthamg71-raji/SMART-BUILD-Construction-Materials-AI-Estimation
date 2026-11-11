@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { 
@@ -21,6 +21,9 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   const handleLogout = () => {
     logout();
@@ -54,30 +57,34 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-200">
-          <Link to={isAuthenticated ? getDashboardLink() : "/login"} className="hover:text-amber-400 transition">
-            {isAuthenticated ? "Dashboard" : "Home"}
-          </Link>
-          <Link to="/materials" className="hover:text-amber-400 transition">Materials</Link>
-          <Link to="/about" className="hover:text-amber-400 transition">About</Link>
-          <Link to="/contact" className="hover:text-amber-400 transition">Contact</Link>
-        </nav>
+        {!isAuthPage && (
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-200">
+            <Link to={isAuthenticated ? getDashboardLink() : "/login"} className="hover:text-amber-400 transition">
+              {isAuthenticated ? "Dashboard" : "Home"}
+            </Link>
+            <Link to="/materials" className="hover:text-amber-400 transition">Materials</Link>
+            <Link to="/about" className="hover:text-amber-400 transition">About</Link>
+            <Link to="/contact" className="hover:text-amber-400 transition">Contact</Link>
+          </nav>
+        )}
 
         {/* Right Section: Cart & Auth */}
         <div className="flex items-center space-x-4">
           {/* Cart Icon */}
-          <Link 
-            to="/cart" 
-            className="relative p-2 text-slate-200 hover:text-amber-400 transition rounded-lg hover:bg-slate-800"
-            title="Shopping Cart"
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
-                {itemCount}
-              </span>
-            )}
-          </Link>
+          {!isAuthPage && (
+            <Link 
+              to="/cart" 
+              className="relative p-2 text-slate-200 hover:text-amber-400 transition rounded-lg hover:bg-slate-800"
+              title="Shopping Cart"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                  {itemCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* User Account / Auth Buttons */}
           {isAuthenticated ? (
@@ -137,6 +144,24 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+          ) : isAuthPage ? (
+            <div>
+              {location.pathname === '/login' ? (
+                <Link
+                  to="/register"
+                  className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-md transition"
+                >
+                  Register
+                </Link>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-md transition"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
           ) : (
             <div className="hidden sm:flex items-center space-x-2">
               <Link
@@ -155,17 +180,19 @@ export default function Navbar() {
           )}
 
           {/* Mobile Menu Toggle Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {!isAuthPage && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
+      {!isAuthPage && mobileMenuOpen && (
         <div className="md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-2 pb-6 space-y-3">
           <Link 
             to={isAuthenticated ? getDashboardLink() : "/login"} 
