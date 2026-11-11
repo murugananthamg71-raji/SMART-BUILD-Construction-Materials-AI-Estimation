@@ -69,9 +69,17 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-slate-700/60 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+        <div className="mt-12 pt-8 border-t border-slate-700/60 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p>© 2026 SMART BUILD Technologies Inc. All rights reserved.</p>
-          <p className="mt-2 sm:mt-0">Compliant with Bureau of Indian Standards (BIS) & CPWD Building Norms.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-slate-300">
+            <span>Developed by <strong className="text-amber-400 font-bold">Muruganantham G</strong> (Coimbatore)</span>
+            <span>•</span>
+            <a href="https://muruganantham-portfolio-13.vercel.app/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline font-semibold">Portfolio</a>
+            <span>•</span>
+            <a href="https://linkedin.com/in/muruganantham-g-7893b2267?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline font-semibold">LinkedIn</a>
+            <span>•</span>
+            <a href="https://github.com/murugananthamg71-raji?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer" className="text-slate-100 hover:underline font-semibold">GitHub</a>
+          </div>
         </div>
       </div>
     </footer>
