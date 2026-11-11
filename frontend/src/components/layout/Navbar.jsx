@@ -144,25 +144,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-          ) : isAuthPage ? (
-            <div>
-              {location.pathname === '/login' ? (
-                <Link
-                  to="/register"
-                  className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-md transition"
-                >
-                  Register
-                </Link>
-              ) : (
-                <Link
-                  to="/login"
-                  className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-md transition"
-                >
-                  Sign In
-                </Link>
-              )}
-            </div>
-          ) : (
+          ) : isAuthPage ? null : (
             <div className="hidden sm:flex items-center space-x-2">
               <Link
                 to="/login"
