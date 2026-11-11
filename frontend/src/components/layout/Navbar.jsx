@@ -44,7 +44,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-[#102A43] text-white shadow-md border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link to={isAuthenticated ? getDashboardLink() : "/login"} className="flex items-center space-x-2.5">
+        <Link to="/home" className="flex items-center space-x-2.5">
           <div className="bg-amber-500 p-2 rounded-xl text-slate-950 font-bold shadow-md">
             <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
@@ -59,9 +59,10 @@ export default function Navbar() {
         {/* Desktop Navigation Links */}
         {!isAuthPage && (
           <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-200">
-            <Link to={isAuthenticated ? getDashboardLink() : "/login"} className="hover:text-amber-400 transition">
-              {isAuthenticated ? "Dashboard" : "Home"}
-            </Link>
+            <Link to="/home" className="hover:text-amber-400 transition">Home</Link>
+            {isAuthenticated && (
+              <Link to={getDashboardLink()} className="hover:text-amber-400 transition">Dashboard</Link>
+            )}
             <Link to="/materials" className="hover:text-amber-400 transition">Materials</Link>
             <Link to="/about" className="hover:text-amber-400 transition">About</Link>
             <Link to="/contact" className="hover:text-amber-400 transition">Contact</Link>
@@ -177,12 +178,21 @@ export default function Navbar() {
       {!isAuthPage && mobileMenuOpen && (
         <div className="md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-2 pb-6 space-y-3">
           <Link 
-            to={isAuthenticated ? getDashboardLink() : "/login"} 
+            to="/home" 
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-sm font-semibold text-slate-200 hover:text-amber-400"
           >
-            {isAuthenticated ? "My Dashboard" : "Home"}
+            Home
           </Link>
+          {isAuthenticated && (
+            <Link 
+              to={getDashboardLink()} 
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-semibold text-slate-200 hover:text-amber-400"
+            >
+              My Dashboard
+            </Link>
+          )}
           <Link 
             to="/materials" 
             onClick={() => setMobileMenuOpen(false)}

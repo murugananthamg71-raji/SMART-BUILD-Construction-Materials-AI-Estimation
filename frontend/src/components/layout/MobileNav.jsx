@@ -21,7 +21,7 @@ export default function MobileNav() {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-2xl py-2 px-4 flex items-center justify-around">
       <NavLink
-        to="/"
+        to="/home"
         className={({ isActive }) => `flex flex-col items-center text-[10px] font-bold ${isActive ? 'text-amber-600' : 'text-slate-500'}`}
       >
         <Home className="w-5 h-5 mb-0.5" />
