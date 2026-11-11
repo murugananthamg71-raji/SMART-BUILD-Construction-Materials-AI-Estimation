@@ -55,15 +55,18 @@ export default function Footer() {
             <div className="space-y-3 text-sm">
               <div className="flex items-start space-x-3 text-slate-300">
                 <Phone className="w-4 h-4 text-amber-400 mt-1 shrink-0" />
-                <span>+91 (080) 4567-8900<br /><span className="text-xs text-slate-400">Toll-free construction hotline</span></span>
+                <a href="tel:+918870642691" className="hover:text-amber-400 transition">
+                  <span>+91 8870642691</span><br />
+                  <span className="text-xs text-slate-400">Direct Construction Hotline</span>
+                </a>
               </div>
               <div className="flex items-start space-x-3 text-slate-300">
                 <Mail className="w-4 h-4 text-amber-400 mt-1 shrink-0" />
-                <span>support@smartbuild.com</span>
+                <a href="mailto:murugananthamg71@gmail.com" className="hover:text-amber-400 transition">murugananthamg71@gmail.com</a>
               </div>
               <div className="flex items-start space-x-3 text-slate-300">
                 <MapPin className="w-4 h-4 text-amber-400 mt-1 shrink-0" />
-                <span>Smart Build Towers, Outer Ring Road, Bangalore - 560103</span>
+                <span>Coimbatore - 641105, Tamil Nadu, India</span>
               </div>
             </div>
           </div>

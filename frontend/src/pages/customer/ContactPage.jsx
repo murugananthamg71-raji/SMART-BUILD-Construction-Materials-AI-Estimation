@@ -125,15 +125,15 @@ export default function ContactPage() {
             <div className="space-y-2.5 text-slate-600 text-xs">
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>+91 (080) 4567-8900 (Toll-Free)</span>
+                <a href="tel:+918870642691" className="hover:text-amber-600 font-semibold transition">+91 8870642691</a>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>support@smartbuild.com</span>
+                <a href="mailto:murugananthamg71@gmail.com" className="hover:text-amber-600 font-semibold transition">murugananthamg71@gmail.com</a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Smart Build Towers, Outer Ring Road, Bellandur, Bangalore 560103</span>
+                <span className="font-semibold text-slate-700">Coimbatore - 641105, Tamil Nadu, India</span>
               </div>
             </div>
           </div>

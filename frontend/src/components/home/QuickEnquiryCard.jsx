@@ -117,7 +117,7 @@ export default function QuickEnquiryCard({ title = "Quick Material Enquiry & Ord
               Book Another Material
             </button>
             <a
-              href={`tel:+919000000001`}
+              href="tel:+918870642691"
               className="py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition inline-flex items-center justify-center space-x-1.5"
             >
               <Phone className="w-3.5 h-3.5" />
