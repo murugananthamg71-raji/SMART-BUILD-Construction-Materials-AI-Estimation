@@ -62,16 +62,17 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-lg">
-        <div className="flex justify-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-amber-500 p-2.5 rounded-xl shadow-md text-slate-950">
-              <Building2 className="w-8 h-8" />
-            </div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">SMART BUILD</span>
+      <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
+        <div className="flex justify-center mb-3">
+          <Link to="/home" className="inline-block transition hover:opacity-90">
+            <img 
+              src="/images/smart-build-logo.png" 
+              alt="SMART BUILD - Construction Materials AI" 
+              className="h-20 sm:h-24 w-auto object-contain mx-auto drop-shadow-sm"
+            />
           </Link>
         </div>
-        <h2 className="mt-6 text-center text-2xl font-extrabold text-slate-900">
+        <h2 className="text-center text-2xl font-extrabold text-slate-900">
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
