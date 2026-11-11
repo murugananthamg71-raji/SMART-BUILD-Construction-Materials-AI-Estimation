@@ -42,7 +42,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#102A43] text-white shadow-md border-b border-slate-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center ${isAuthPage ? 'justify-center' : 'justify-between'}`}>
         {/* Brand Logo */}
         <Link to="/home" className="flex items-center space-x-2.5">
           <div className="bg-amber-500 p-2 rounded-xl text-slate-950 font-bold shadow-md">
@@ -50,7 +50,7 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-black tracking-tight text-white leading-tight">SMART BUILD</span>
-            <span className="text-[10px] tracking-wider text-amber-400 font-bold uppercase hidden sm:inline">
+            <span className="text-[10px] tracking-wider text-amber-400 font-bold uppercase sm:inline">
               Materials & AI Estimation
             </span>
           </div>
@@ -70,9 +70,9 @@ export default function Navbar() {
         )}
 
         {/* Right Section: Cart & Auth */}
-        <div className="flex items-center space-x-4">
-          {/* Cart Icon */}
-          {!isAuthPage && (
+        {!isAuthPage && (
+          <div className="flex items-center space-x-4">
+            {/* Cart Icon */}
             <Link 
               to="/cart" 
               className="relative p-2 text-slate-200 hover:text-amber-400 transition rounded-lg hover:bg-slate-800"
@@ -85,93 +85,91 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-          )}
 
-          {/* User Account / Auth Buttons */}
-          {isAuthenticated ? (
-            <div className="relative">
-              <button
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold text-white focus:outline-none"
-              >
-                <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold uppercase shadow-xs">
-                  {user.name.charAt(0)}
-                </div>
-                <div className="hidden lg:block text-left">
-                  <div className="text-xs font-bold leading-tight truncate max-w-[120px]">{user.name}</div>
-                  <div className="text-[10px] text-amber-400 uppercase tracking-wider">{user.role}</div>
-                </div>
-                <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
-              </button>
-
-              {/* Dropdown Menu */}
-              {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl py-2 border border-slate-200 text-slate-800 text-sm z-50 animate-in fade-in-50">
-                  <div className="px-4 py-2.5 border-b border-slate-100">
-                    <p className="font-bold text-slate-900 truncate">{user.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider bg-amber-100 text-amber-900">
-                      {user.role}
-                    </span>
+            {/* User Account / Auth Buttons */}
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-800 transition text-sm font-semibold text-white focus:outline-none"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold uppercase shadow-xs">
+                    {user.name.charAt(0)}
                   </div>
+                  <div className="hidden lg:block text-left">
+                    <div className="text-xs font-bold leading-tight truncate max-w-[120px]">{user.name}</div>
+                    <div className="text-[10px] text-amber-400 uppercase tracking-wider">{user.role}</div>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
+                </button>
 
-                  <Link
-                    to={getDashboardLink()}
-                    onClick={() => setUserDropdownOpen(false)}
-                    className="flex items-center space-x-2.5 px-4 py-2 hover:bg-slate-50 text-slate-700 font-medium"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-amber-600" />
-                    <span>Dashboard</span>
-                  </Link>
+                {/* Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl py-2 border border-slate-200 text-slate-800 text-sm z-50 animate-in fade-in-50">
+                    <div className="px-4 py-2.5 border-b border-slate-100">
+                      <p className="font-bold text-slate-900 truncate">{user.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider bg-amber-100 text-amber-900">
+                        {user.role}
+                      </span>
+                    </div>
 
-                  {role === 'customer' && (
                     <Link
-                      to="/orders"
+                      to={getDashboardLink()}
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center space-x-2.5 px-4 py-2 hover:bg-slate-50 text-slate-700 font-medium"
                     >
-                      <Package className="w-4 h-4 text-blue-600" />
-                      <span>Order History</span>
+                      <LayoutDashboard className="w-4 h-4 text-amber-600" />
+                      <span>Dashboard</span>
                     </Link>
-                  )}
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center space-x-2.5 px-4 py-2 hover:bg-red-50 text-red-600 font-medium border-t border-slate-100 mt-1"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : isAuthPage ? null : (
-            <div className="hidden sm:flex items-center space-x-2">
-              <Link
-                to="/login"
-                className="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white rounded-lg hover:bg-slate-800 transition"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-md transition"
-              >
-                Register
-              </Link>
-            </div>
-          )}
+                    {role === 'customer' && (
+                      <Link
+                        to="/orders"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center space-x-2.5 px-4 py-2 hover:bg-slate-50 text-slate-700 font-medium"
+                      >
+                        <Package className="w-4 h-4 text-blue-600" />
+                        <span>Order History</span>
+                      </Link>
+                    )}
 
-          {/* Mobile Menu Toggle Button */}
-          {!isAuthPage && (
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-2.5 px-4 py-2 hover:bg-red-50 text-red-600 font-medium border-t border-slate-100 mt-1"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center space-x-2">
+                <Link
+                  to="/login"
+                  className="px-3.5 py-1.5 text-xs font-bold text-slate-200 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-4 py-1.5 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-lg shadow-md transition"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu Toggle Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile Menu Dropdown */}
