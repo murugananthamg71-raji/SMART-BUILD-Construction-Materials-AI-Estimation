@@ -9,7 +9,6 @@ import {
   LogOut, 
   Menu, 
   X, 
-  Calculator, 
   Package, 
   LayoutDashboard,
   ShieldCheck,
@@ -58,23 +57,6 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-200">
           <Link to="/" className="hover:text-amber-400 transition">Home</Link>
           <Link to="/materials" className="hover:text-amber-400 transition">Materials</Link>
-          <Link to="/estimator" className="flex items-center space-x-1.5 text-amber-400 hover:text-amber-300 transition">
-            <Calculator className="w-4 h-4" />
-            <span>AI Estimator</span>
-          </Link>
-          <a 
-            href="/#enquiry-card" 
-            onClick={(e) => {
-              const el = document.getElementById('enquiry-card');
-              if (el) {
-                e.preventDefault();
-                el.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className="text-amber-400 hover:text-amber-300 font-bold transition flex items-center space-x-1"
-          >
-            <span>Enquire & Book</span>
-          </a>
           <Link to="/about" className="hover:text-amber-400 transition">About</Link>
           <Link to="/contact" className="hover:text-amber-400 transition">Contact</Link>
         </nav>
@@ -197,27 +179,6 @@ export default function Navbar() {
           >
             Materials Catalog
           </Link>
-          <Link 
-            to="/estimator" 
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-sm font-semibold text-amber-400"
-          >
-            AI Construction Material Estimator
-          </Link>
-          <a 
-            href="/#enquiry-card" 
-            onClick={(e) => {
-              setMobileMenuOpen(false);
-              const el = document.getElementById('enquiry-card');
-              if (el) {
-                e.preventDefault();
-                el.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className="block py-2 text-sm font-bold text-amber-400"
-          >
-            ⚡ Quick Material Enquiry & Book Order
-          </a>
           <Link 
             to="/about" 
             onClick={() => setMobileMenuOpen(false)}
