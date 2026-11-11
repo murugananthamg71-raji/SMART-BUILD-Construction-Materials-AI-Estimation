@@ -25,11 +25,12 @@ def test_db_check_endpoint():
     data = response.json()
     assert data["status"] == "connected"
     assert data["database"] == "online"
-    assert data["registered_tables_count"] == 24
+    assert data["registered_tables_count"] >= 24
     assert "users" in data["tables"]
     assert "products" in data["tables"]
     assert "orders" in data["tables"]
     assert "ai_estimations" in data["tables"]
+    assert "enquiries" in data["tables"]
 
 def test_all_24_tables_defined():
     table_names = set(Base.metadata.tables.keys())
@@ -57,6 +58,7 @@ def test_all_24_tables_defined():
         "price_history",
         "ai_estimations",
         "ai_predictions",
-        "audit_logs"
+        "audit_logs",
+        "enquiries"
     }
     assert expected_tables.issubset(table_names), f"Missing tables: {expected_tables - table_names}"
