@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Building2, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
@@ -10,11 +10,23 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const roleRedirects = {
+        customer: '/customer/dashboard',
+        supplier: '/supplier/dashboard',
+        admin: '/admin/dashboard',
+        delivery_partner: '/delivery/dashboard',
+      };
+      navigate(roleRedirects[user.role] || '/customer/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

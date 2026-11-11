@@ -32,6 +32,31 @@ import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
 
 // Route Guard
 import ProtectedRoute from './routes/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
+
+function RootRoute() {
+  const { isAuthenticated, role, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="py-24 text-center">
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const roleRedirects = {
+    customer: '/customer/dashboard',
+    supplier: '/supplier/dashboard',
+    admin: '/admin/dashboard',
+    delivery_partner: '/delivery/dashboard',
+  };
+  return <Navigate to={roleRedirects[role] || '/customer/dashboard'} replace />;
+}
 
 export default function App() {
   return (
@@ -45,8 +70,9 @@ export default function App() {
             {/* Main Content Area */}
             <main className="flex-1">
               <Routes>
-                {/* Public Marketplace */}
-                <Route path="/" element={<LandingPage />} />
+                {/* Root Route: immediately opens login page if not logged in, or role dashboard if logged in */}
+                <Route path="/" element={<RootRoute />} />
+                <Route path="/home" element={<LandingPage />} />
                 <Route path="/materials" element={<ProductListingPage />} />
                 <Route path="/materials/:id" element={<ProductDetailsPage />} />
                 <Route path="/estimator" element={<AIEstimatorPage />} />
