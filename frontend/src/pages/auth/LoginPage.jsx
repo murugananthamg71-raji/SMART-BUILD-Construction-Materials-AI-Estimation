@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Building2, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Building2, Lock, Mail, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -39,12 +39,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemoAccount = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError('');
   };
 
   return (
@@ -135,48 +129,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Accounts Pill Selector */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Instant Demo Accounts</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('customer@smartbuild.com', 'Demo1234!')}
-                className="p-2 rounded-lg border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 text-left transition"
-              >
-                <div className="font-semibold text-slate-800">Customer</div>
-                <div className="text-slate-400 text-[11px] truncate">customer@smartbuild.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('supplier@smartbuild.com', 'Demo1234!')}
-                className="p-2 rounded-lg border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/50 text-left transition"
-              >
-                <div className="font-semibold text-slate-800">Supplier</div>
-                <div className="text-slate-400 text-[11px] truncate">supplier@smartbuild.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('admin@smartbuild.com', 'Demo1234!')}
-                className="p-2 rounded-lg border border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 text-left transition"
-              >
-                <div className="font-semibold text-slate-800">Admin</div>
-                <div className="text-slate-400 text-[11px] truncate">admin@smartbuild.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('delivery@smartbuild.com', 'Demo1234!')}
-                className="p-2 rounded-lg border border-slate-200 hover:border-purple-400 hover:bg-purple-50/50 text-left transition"
-              >
-                <div className="font-semibold text-slate-800">Delivery Partner</div>
-                <div className="text-slate-400 text-[11px] truncate">delivery@smartbuild.com</div>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
