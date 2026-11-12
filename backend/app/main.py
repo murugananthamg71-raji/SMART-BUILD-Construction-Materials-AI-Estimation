@@ -23,7 +23,7 @@ from contextlib import asynccontextmanager
 from app.models import Base
 from app.database.session import engine, SessionLocal
 from app.models.category import Category
-from app.database.seed import seed_all
+from app.database.seed import seed_database
 
 # Setup logging
 logging.basicConfig(
@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
         with SessionLocal() as db:
             if db.query(Category).count() == 0:
                 logger.info("Fresh database detected. Initializing tables and seeding initial data...")
-                seed_all()
+                seed_database(force_refresh=False)
     except Exception as e:
         logger.warning(f"Database init notice: {e}")
     yield

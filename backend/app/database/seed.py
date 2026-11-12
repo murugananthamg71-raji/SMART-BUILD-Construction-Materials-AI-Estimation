@@ -1084,5 +1084,7 @@ def seed_database(force_refresh=True):
     finally:
         db.close()
 
+seed_all = seed_database
+
 if __name__ == "__main__":
     seed_database(force_refresh=True)
