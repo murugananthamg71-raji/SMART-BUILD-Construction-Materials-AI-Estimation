@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated, login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,13 +27,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const roleRedirects = {
-        customer: '/customer/dashboard',
-        supplier: '/supplier/dashboard',
-        admin: '/admin/dashboard',
-        delivery_partner: '/delivery/dashboard',
-      };
-      navigate(roleRedirects[user.role] || '/customer/dashboard', { replace: true });
+      if (user.role === 'supplier') {
+        navigate('/supplier/dashboard', { replace: true });
+      } else if (user.role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user.role === 'delivery_partner') {
+        navigate('/delivery/dashboard', { replace: true });
+      } else {
+        navigate('/customer/dashboard', { replace: true });
+      }
     }
   }, [isAuthenticated, user]);
 
@@ -44,17 +46,35 @@ export default function LoginPage() {
 
     try {
       const loggedUser = await login(email, password);
-      if (from !== '/') {
-        navigate(from, { replace: true });
-      } else {
-        const roleRedirects = {
-          customer: '/customer/dashboard',
-          supplier: '/supplier/dashboard',
-          admin: '/admin/dashboard',
-          delivery_partner: '/delivery/dashboard',
-        };
-        navigate(roleRedirects[loggedUser.role] || '/', { replace: true });
+
+      // Strict role check: If user chose Material Supplier tab, prevent going to customer dashboard
+      if (role === 'supplier') {
+        if (loggedUser.role !== 'supplier') {
+          logout();
+          setError('This email is registered as a Customer account. To access the Material Supplier portal, please login with a Supplier account or register as a Material Supplier below.');
+          return;
+        }
+        navigate('/supplier/dashboard', { replace: true });
+        return;
       }
+
+      // If user chose Customer tab, but account is a Supplier, send directly to supplier dashboard
+      if (role === 'customer') {
+        if (loggedUser.role === 'supplier') {
+          navigate('/supplier/dashboard', { replace: true });
+          return;
+        }
+        navigate('/customer/dashboard', { replace: true });
+        return;
+      }
+
+      const roleRedirects = {
+        customer: '/customer/dashboard',
+        supplier: '/supplier/dashboard',
+        admin: '/admin/dashboard',
+        delivery_partner: '/delivery/dashboard',
+      };
+      navigate(roleRedirects[loggedUser.role] || '/customer/dashboard', { replace: true });
     } catch (err) {
       let msg = 'Invalid email or password.';
       const detail = err.response?.data?.detail;
@@ -209,6 +229,23 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+
+          {role === 'supplier' && (
+            <div className="mt-4 pt-3 border-t border-dashed border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('supplier@smartbuild.com');
+                  setPassword('Demo1234!');
+                  setError('');
+                }}
+                className="w-full py-1.5 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-semibold text-amber-900 flex items-center justify-center space-x-1.5 transition"
+              >
+                <Store className="w-3.5 h-3.5 text-amber-600" />
+                <span>Fill Demo Supplier Credentials (supplier@smartbuild.com)</span>
+              </button>
+            </div>
+          )}
 
           <div className="mt-5 pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
             {role === 'supplier' ? (
