@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Building2, Lock, Mail, User, Phone, MapPin, Briefcase, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 
 export default function RegisterPage() {
-  const [role, setRole] = useState('customer'); // 'customer' or 'supplier'
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialRole = searchParams.get('role') === 'supplier' ? 'supplier' : 'customer';
+  const [role, setRole] = useState(initialRole);
+
+  useEffect(() => {
+    const r = searchParams.get('role');
+    if (r === 'supplier' || r === 'customer') {
+      setRole(r);
+    }
+  }, [location.search]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
