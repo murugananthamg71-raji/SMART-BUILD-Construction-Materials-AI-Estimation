@@ -54,7 +54,16 @@ export default function RegisterPage() {
       };
       navigate(roleRedirects[user.role] || '/', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please check inputs.');
+      let msg = 'Registration failed. Please check inputs.';
+      const detail = err.response?.data?.detail;
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((d) => d.msg || `${d.loc?.slice(-1)[0]}: invalid input`).join(', ');
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
