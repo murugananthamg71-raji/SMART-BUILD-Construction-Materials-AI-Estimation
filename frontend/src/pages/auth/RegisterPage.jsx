@@ -57,12 +57,12 @@ export default function RegisterPage() {
       };
 
       const user = await register(payload);
-      const roleRedirects = {
-        customer: '/customer/dashboard',
-        supplier: '/supplier/dashboard',
-        admin: '/admin/dashboard',
-      };
-      navigate(roleRedirects[user.role] || '/', { replace: true });
+      // After registration, always redirect to Sign In page
+      if (user.role === 'supplier') {
+        navigate('/login?role=supplier&registered=1', { replace: true });
+      } else {
+        navigate('/login?registered=1', { replace: true });
+      }
     } catch (err) {
       let msg = 'Registration failed. Please check inputs.';
       const detail = err.response?.data?.detail;

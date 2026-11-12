@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { user, isAuthenticated, login, logout } = useAuth();
@@ -22,6 +23,13 @@ export default function LoginPage() {
     const r = searchParams.get('role');
     if (r === 'supplier' || r === 'customer') {
       setRole(r);
+    }
+    if (searchParams.get('registered') === '1') {
+      if (r === 'supplier') {
+        setSuccessMsg('✅ Supplier registration successful! Please sign in with your credentials below.');
+      } else {
+        setSuccessMsg('✅ Registration successful! Please sign in to continue.');
+      }
     }
   }, [location.search]);
 
@@ -167,6 +175,12 @@ export default function LoginPage() {
             <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start space-x-2.5">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && !error && (
+            <div className="mb-5 p-3.5 rounded-xl bg-green-50 border border-green-200 text-green-800 text-sm flex items-start space-x-2.5">
+              <span className="font-semibold">{successMsg}</span>
             </div>
           )}
 
