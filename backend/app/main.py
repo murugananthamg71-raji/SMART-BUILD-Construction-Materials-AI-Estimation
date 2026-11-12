@@ -19,6 +19,12 @@ from app.routers import (
     enquiries
 )
 
+from contextlib import asynccontextmanager
+from app.models import Base
+from app.database.session import engine, SessionLocal
+from app.models.category import Category
+from app.database.seed import seed_all
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -26,13 +32,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger("smart_build")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        Base.metadata.create_all(bind=engine)
+        with SessionLocal() as db:
+            if db.query(Category).count() == 0:
+                logger.info("Fresh database detected. Initializing tables and seeding initial data...")
+                seed_all()
+    except Exception as e:
+        logger.warning(f"Database init notice: {e}")
+    yield
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="Production-grade REST API backend for SMART BUILD – AI-Powered Construction Material Ordering System.",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
-    redoc_url=f"{settings.API_V1_STR}/redoc"
+    redoc_url=f"{settings.API_V1_STR}/redoc",
+    lifespan=lifespan
 )
 
 # CORS Middleware
